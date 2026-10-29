@@ -1,0 +1,48 @@
+---
+import type { CodeLanguage } from 'astro';
+import { Code } from 'astro:components';
+import codeTheme from '../lib/code-theme.mjs';
+
+interface Props {
+  code: string;
+  lang?: CodeLanguage;
+  filename?: string;
+}
+
+const { code, lang = 'js', filename } = Astro.props;
+---
+<figure class="code-block" data-pagefind-ignore>
+  <figcaption class="code-head">
+    {filename ? <span class="code-filename">{filename}</span> : <span class="code-filename" aria-hidden="true"></span>}
+    <button type="button" class="copy-button" data-copy-code aria-live="polite">Copy</button>
+  </figcaption>
+  <Code code={code.trimEnd()} lang={lang} theme={codeTheme} />
+</figure>
+
+<script>
+  const resetDelay = 1600;
+  const copy = async (text: string) => {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error('Clipboard API unavailable');
+    }
+    await navigator.clipboard.writeText(text);
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-copy-code]').forEach((button) => {
+    let timer: number | undefined;
+    button.addEventListener('click', async () => {
+      const block = button.closest('.code-block');
+      const code = block?.querySelector('pre')?.textContent ?? '';
+      try {
+        await copy(code);
+        button.textContent = 'Copied';
+      } catch {
+        button.textContent = 'Copy failed';
+      }
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        button.textContent = 'Copy';
+      }, resetDelay);
+    });
+  });
+</script>

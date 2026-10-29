@@ -1,0 +1,58 @@
+---
+interface Props {
+  source: string;
+}
+
+const { source } = Astro.props;
+---
+<div class="mermaid-scroll">
+  <pre class="mermaid" data-pagefind-ignore>{source}</pre>
+</div>
+
+<script>
+  import mermaid from 'mermaid';
+
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: 'strict',
+    theme: 'base',
+    fontFamily:
+      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif',
+    themeVariables: {
+      fontSize: '16px',
+      primaryColor: '#f0eee6',
+      primaryTextColor: '#141413',
+      primaryBorderColor: '#d1cfc5',
+      secondaryColor: '#faf9f5',
+      secondaryTextColor: '#141413',
+      secondaryBorderColor: '#e8e6dc',
+      tertiaryColor: '#f0eee6',
+      tertiaryTextColor: '#141413',
+      tertiaryBorderColor: '#e8e6dc',
+      lineColor: '#5e5d59',
+      textColor: '#141413',
+      nodeTextColor: '#141413',
+      edgeLabelBackground: '#faf9f5',
+      clusterBkg: '#faf9f5',
+      clusterBorder: '#e8e6dc',
+    },
+    flowchart: {
+      htmlLabels: false,
+      curve: 'basis',
+    },
+  });
+
+  const nodes = Array.from(document.querySelectorAll<HTMLElement>('.mermaid'));
+  await Promise.all(
+    nodes.map(async (node, index) => {
+      const source = node.textContent ?? '';
+      try {
+        const { svg } = await mermaid.render(`source-notes-diagram-${index}`, source);
+        node.innerHTML = svg;
+      } catch {
+        node.textContent = source;
+        node.classList.add('mermaid-error');
+      }
+    }),
+  );
+</script>

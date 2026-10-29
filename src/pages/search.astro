@@ -1,0 +1,17 @@
+---
+import Search from '../components/Search.astro';
+import Layout from '../layouts/Layout.astro';
+import { posts } from '../lib/posts';
+import { SITE_NAME } from '../lib/site';
+
+const entries = await posts();
+---
+<Layout title={`Search · ${SITE_NAME}`} description="Search notes on code and systems.">
+  <div class="wrap">
+    <section class="search-page">
+      <h1 class="search-title">Search</h1>
+      <p class="search-lede">Search notes on code and systems.</p>
+      <Search articleCount={entries.length} searchAvailable={!import.meta.env.DEV} />
+    </section>
+  </div>
+</Layout>

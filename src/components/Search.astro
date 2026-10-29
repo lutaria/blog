@@ -1,0 +1,293 @@
+---
+import { url } from '../lib/url';
+
+interface Props {
+  articleCount: number;
+  searchAvailable?: boolean;
+}
+
+const { articleCount, searchAvailable = true } = Astro.props;
+const hasArticles = articleCount > 0;
+const searchEnabled = hasArticles && searchAvailable;
+const statusText = !searchAvailable
+  ? 'Search is available in the production build.'
+  : hasArticles
+    ? 'Loading search…'
+    : 'No articles published yet.';
+---
+<form class="search-form" role="search" action={url('search/')} method="get" data-search-form data-search-enabled={searchEnabled ? 'true' : 'false'}>
+  <label class="search-label" for="search-input">Search articles</label>
+  <div class="search-controls">
+    <input
+      class="search-input"
+      id="search-input"
+      name="q"
+      type="search"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="Try “Astro” or “同步”"
+      disabled={!searchEnabled}
+      data-search-input
+    />
+    <button class="clear-button" type="button" data-search-clear disabled>Clear</button>
+  </div>
+  <p class="search-status" role="status" aria-live="polite" data-search-status>{statusText}</p>
+  <p class="search-helper" data-search-helper hidden>Try another word, such as Astro or 同步.</p>
+  <button class="retry-button" type="button" data-search-retry hidden>Retry</button>
+</form>
+<ul class="search-results" aria-label="Search results" data-search-results></ul>
+<noscript>
+  <p class="search-noscript">Search requires JavaScript. <a href={url('#articles')}>Browse all articles instead.</a></p>
+</noscript>
+
+<script>
+  import { base } from '../lib/url';
+
+  interface PagefindData {
+    url: string;
+    excerpt: string;
+    meta: Record<string, string | undefined>;
+  }
+
+  interface PagefindResult {
+    data: () => Promise<PagefindData>;
+  }
+
+  interface PagefindModule {
+    init: () => Promise<void>;
+    options: (options: { baseUrl?: string }) => Promise<void>;
+    search: (query: string) => Promise<{ results: PagefindResult[] }>;
+  }
+
+  const form = document.querySelector<HTMLFormElement>('[data-search-form]');
+  const input = document.querySelector<HTMLInputElement>('[data-search-input]');
+  const clearButton = document.querySelector<HTMLButtonElement>('[data-search-clear]');
+  const status = document.querySelector<HTMLElement>('[data-search-status]');
+  const helper = document.querySelector<HTMLElement>('[data-search-helper]');
+  const retryButton = document.querySelector<HTMLButtonElement>('[data-search-retry]');
+  const resultsList = document.querySelector<HTMLUListElement>('[data-search-results]');
+
+  if (form && input && clearButton && status && helper && retryButton && resultsList) {
+    const searchEnabled = form.dataset.searchEnabled !== 'false';
+    const initialStatus = 'Enter a word or phrase to search.';
+    if (searchEnabled) {
+      let pagefindPromise: Promise<PagefindModule> | null = null;
+      let indexReady = false;
+      let loadAttempt = 0;
+      let sequence = 0;
+      let debounceTimer: number | undefined;
+
+      const syncQueryToUrl = (query: string) => {
+        const next = new URL(window.location.href);
+        if (query) {
+          next.searchParams.set('q', query);
+        } else {
+          next.searchParams.delete('q');
+        }
+        window.history.replaceState(null, '', next);
+      };
+
+      const setStatus = (text: string) => {
+        status.textContent = text;
+      };
+
+      const resetResults = () => {
+        resultsList.replaceChildren();
+      };
+
+      const showIdle = () => {
+        helper.hidden = true;
+        retryButton.hidden = true;
+        resetResults();
+        setStatus(indexReady ? initialStatus : 'Loading search…');
+      };
+
+      const showError = () => {
+        helper.hidden = true;
+        retryButton.hidden = false;
+        resetResults();
+        setStatus('Search is unavailable. Please try again.');
+      };
+
+      const loadPagefind = (): Promise<PagefindModule> => {
+        if (!pagefindPromise) {
+          const retryQuery = loadAttempt > 0 ? `?retry=${loadAttempt}` : '';
+          const bundleUrl = `${base}pagefind/pagefind.js${retryQuery}`;
+          pagefindPromise = import(/* @vite-ignore */ bundleUrl)
+            .then(async (module) => {
+              const pagefind = module as PagefindModule;
+              await pagefind.options({ baseUrl: base });
+              await pagefind.init();
+              indexReady = true;
+              return pagefind;
+            })
+            .catch((error) => {
+              pagefindPromise = null;
+              throw error;
+            });
+        }
+        return pagefindPromise;
+      };
+
+      const sanitizeExcerpt = (html: string) => {
+        const template = document.createElement('template');
+        template.innerHTML = html;
+        const fragment = document.createDocumentFragment();
+
+        const append = (source: Node, target: Node) => {
+          source.childNodes.forEach((child) => {
+            if (child.nodeType === Node.TEXT_NODE) {
+              target.appendChild(document.createTextNode(child.nodeValue ?? ''));
+              return;
+            }
+            if (child.nodeType !== Node.ELEMENT_NODE) return;
+            const element = child as HTMLElement;
+            if (element.tagName === 'MARK') {
+              const mark = document.createElement('mark');
+              append(element, mark);
+              target.appendChild(mark);
+              return;
+            }
+            append(element, target);
+          });
+        };
+
+        append(template.content, fragment);
+        return fragment;
+      };
+
+      const renderResults = (items: PagefindData[]) => {
+        const listItems = items.map((item) => {
+          const li = document.createElement('li');
+          li.className = 'search-result';
+
+          const heading = document.createElement('h2');
+          heading.className = 'search-result-title';
+          heading.lang = 'zh-CN';
+          const link = document.createElement('a');
+          link.href = item.url;
+          link.textContent = item.meta.title ?? 'Untitled';
+          heading.appendChild(link);
+
+          const excerpt = document.createElement('p');
+          excerpt.className = 'search-result-excerpt';
+          excerpt.lang = 'zh-CN';
+          if (item.excerpt) {
+            excerpt.appendChild(sanitizeExcerpt(item.excerpt));
+          } else {
+            excerpt.textContent = item.meta.description ?? '';
+          }
+
+          const meta = document.createElement('p');
+          meta.className = 'search-result-meta';
+          meta.textContent = item.meta.date ?? '';
+
+          li.append(heading, excerpt);
+          if (meta.textContent) li.append(meta);
+          return li;
+        });
+        resultsList.replaceChildren(...listItems);
+      };
+
+      const runSearch = async (query: string) => {
+        const ticket = ++sequence;
+        helper.hidden = true;
+        retryButton.hidden = true;
+        resetResults();
+        setStatus('Searching…');
+
+        try {
+          const pagefind = await loadPagefind();
+          const search = await pagefind.search(query);
+          const data = await Promise.all(search.results.slice(0, 20).map((result) => result.data()));
+          if (ticket !== sequence) return;
+
+          if (data.length === 0) {
+            setStatus(`No results for “${query}”.`);
+            helper.hidden = false;
+            return;
+          }
+
+          setStatus(
+            `${data.length} ${data.length === 1 ? 'result' : 'results'} for “${query}”`,
+          );
+          renderResults(data);
+        } catch {
+          if (ticket !== sequence) return;
+          showError();
+        }
+      };
+
+      const initialQuery = (new URLSearchParams(window.location.search).get('q') ?? '').trim();
+      input.value = initialQuery;
+      clearButton.disabled = initialQuery.length === 0;
+
+      loadPagefind()
+        .then(() => {
+          if (input.value.trim()) {
+            void runSearch(input.value.trim());
+          } else {
+            showIdle();
+          }
+        })
+        .catch(showError);
+
+      input.addEventListener('input', () => {
+        const query = input.value.trim();
+        clearButton.disabled = query.length === 0;
+        window.clearTimeout(debounceTimer);
+
+        if (!query) {
+          sequence += 1;
+          showIdle();
+          return;
+        }
+
+        setStatus(indexReady ? 'Searching…' : 'Loading search…');
+        debounceTimer = window.setTimeout(() => {
+          void runSearch(query);
+        }, 200);
+      });
+
+      clearButton.addEventListener('click', () => {
+        input.value = '';
+        clearButton.disabled = true;
+        sequence += 1;
+        window.clearTimeout(debounceTimer);
+        syncQueryToUrl('');
+        showIdle();
+        input.focus();
+      });
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const query = input.value.trim();
+        window.clearTimeout(debounceTimer);
+        syncQueryToUrl(query);
+
+        if (!query) {
+          sequence += 1;
+          showIdle();
+          return;
+        }
+
+        void runSearch(query);
+      });
+
+      retryButton.addEventListener('click', () => {
+        loadAttempt += 1;
+        pagefindPromise = null;
+        retryButton.hidden = true;
+        const query = input.value.trim();
+        if (query) {
+          void runSearch(query);
+        } else {
+          setStatus('Loading search…');
+          loadPagefind()
+            .then(() => showIdle())
+            .catch(showError);
+        }
+      });
+    }
+  }
+</script>

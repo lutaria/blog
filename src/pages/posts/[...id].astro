@@ -1,0 +1,77 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { posts } from '../../lib/posts';
+import { formatDate, SITE_NAME } from '../../lib/site';
+import { url } from '../../lib/url';
+
+export async function getStaticPaths() {
+  return (await posts()).map((post) => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const toc = headings.filter((heading) => heading.depth === 2);
+const articlesHref = url('#articles');
+---
+<Layout title={`${post.data.title} · ${SITE_NAME}`} description={post.data.description}>
+  <div class="wrap">
+    <article class="article-page" lang="en">
+      <div class="article-col" data-pagefind-body>
+        <a class="article-back" href={articlesHref} data-pagefind-ignore>All articles</a>
+        {post.data.tags.length > 0 && (
+          <ul class="article-tags article-tags-head" aria-label="Tags" data-pagefind-ignore>
+            {post.data.tags.map((tag, index) => (
+              <li>
+                {index > 0 && <span class="tag-separator" aria-hidden="true">·</span>}
+                <a href={url(`tags/${tag}/`)}>{tag}</a>
+              </li>
+            ))}
+          </ul>
+        )}
+        <header lang="zh-CN">
+          <h1 class="article-title-main" data-pagefind-meta="title">{post.data.title}</h1>
+          <p class="article-lede" data-pagefind-meta="description">{post.data.description}</p>
+        </header>
+        <p class="article-meta">
+          <time datetime={post.data.pubDate.toISOString()} data-pagefind-meta="date">{formatDate(post.data.pubDate)}</time>
+          {' · '}Chinese
+        </p>
+        {toc.length > 0 && (
+          <details class="toc-mobile" data-pagefind-ignore>
+            <summary>On this page</summary>
+            <ol>
+              {toc.map((heading) => (
+                <li lang="zh-CN"><a href={`#${heading.slug}`}>{heading.text}</a></li>
+              ))}
+            </ol>
+          </details>
+        )}
+        <div class="prose" lang="zh-CN">
+          <Content />
+        </div>
+        <p class="article-end" data-pagefind-ignore>
+          <a href={articlesHref}>Back to articles</a>
+        </p>
+      </div>
+      {toc.length > 0 && (
+        <aside class="toc-desktop" aria-label="On this page" data-pagefind-ignore>
+          <h2>On this page</h2>
+          <ol>
+            {toc.map((heading) => (
+              <li lang="zh-CN"><a href={`#${heading.slug}`}>{heading.text}</a></li>
+            ))}
+          </ol>
+        </aside>
+      )}
+    </article>
+  </div>
+</Layout>

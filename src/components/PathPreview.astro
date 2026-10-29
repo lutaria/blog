@@ -1,0 +1,39 @@
+---
+import { postPath } from '../../shared/post-path.js';
+
+const slug = 'one-source';
+const options = [
+  { value: '/tech-blog/', label: 'Project site (/tech-blog/)' },
+  { value: '/', label: 'Domain root (/)' },
+];
+const initialPath = postPath(slug, '/tech-blog/');
+---
+<section class="path-preview" lang="en" data-path-preview data-slug={slug} aria-labelledby="path-preview-title">
+  <h3 class="path-title" id="path-preview-title">Path preview</h3>
+  <label class="path-field" for="path-base">Deployment base</label>
+  <select class="path-select" id="path-base" data-path-base>
+    {options.map((option) => (
+      <option value={option.value} selected={option.value === '/tech-blog/'}>{option.label}</option>
+    ))}
+  </select>
+  <p class="path-output-row">
+    <span class="path-output-label" id="path-output-label">Article URL path</span>
+    <output class="path-output" for="path-base" aria-labelledby="path-output-label" data-path-output>{initialPath}</output>
+  </p>
+</section>
+
+<script>
+  import { postPath } from '../../shared/post-path.js';
+
+  document.querySelectorAll<HTMLElement>('[data-path-preview]').forEach((preview) => {
+    const select = preview.querySelector<HTMLSelectElement>('[data-path-base]');
+    const output = preview.querySelector<HTMLOutputElement>('[data-path-output]');
+    const slug = preview.dataset.slug ?? 'one-source';
+    if (!select || !output) return;
+    const update = () => {
+      output.textContent = postPath(slug, select.value);
+    };
+    select.addEventListener('change', update);
+    update();
+  });
+</script>

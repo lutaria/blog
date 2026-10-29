@@ -1,0 +1,29 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../lib/site';
+import { url } from '../lib/url';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const href = url(`posts/${post.id}/`);
+---
+<li class="article-row">
+  <time class="article-date" datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+  <div>
+    <h3 class="article-title" lang="zh-CN"><a href={href}>{post.data.title}</a></h3>
+    <p class="article-summary" lang="zh-CN">{post.data.description}</p>
+    {post.data.tags.length > 0 && (
+      <ul class="article-tags" aria-label="Tags">
+        {post.data.tags.map((tag, index) => (
+          <li>
+            {index > 0 && <span class="tag-separator" aria-hidden="true">·</span>}
+            <a href={url(`tags/${tag}/`)}>{tag}</a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</li>

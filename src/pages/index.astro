@@ -1,0 +1,30 @@
+---
+import ArticleRow from '../components/ArticleRow.astro';
+import Layout from '../layouts/Layout.astro';
+import { posts } from '../lib/posts';
+import { articleCount, SITE_DESCRIPTION, SITE_NAME } from '../lib/site';
+
+const entries = await posts();
+---
+<Layout title={SITE_NAME} description={SITE_DESCRIPTION}>
+  <div class="wrap">
+    <section class="home" aria-labelledby="site-title">
+      <p class="eyebrow">Engineering notes</p>
+      <h1 class="page-title" id="site-title">{SITE_NAME}</h1>
+      <p class="page-lede">{SITE_DESCRIPTION}</p>
+    </section>
+    <section id="articles" aria-labelledby="articles-title">
+      <div class="section-heading">
+        <h2 id="articles-title">Articles</h2>
+        <p class="count">{articleCount(entries.length)}</p>
+      </div>
+      {entries.length > 0 ? (
+        <ul class="article-list">
+          {entries.map((post) => <ArticleRow post={post} />)}
+        </ul>
+      ) : (
+        <p class="empty-state">No articles published yet.</p>
+      )}
+    </section>
+  </div>
+</Layout>

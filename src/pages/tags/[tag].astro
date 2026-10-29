@@ -1,0 +1,39 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import ArticleRow from '../../components/ArticleRow.astro';
+import Layout from '../../layouts/Layout.astro';
+import { posts } from '../../lib/posts';
+import { articleCount, SITE_NAME } from '../../lib/site';
+import { url } from '../../lib/url';
+
+export async function getStaticPaths() {
+  const all = await posts();
+  const tags = [...new Set(all.flatMap((post) => post.data.tags))];
+  return tags.map((tag) => ({
+    params: { tag },
+    props: { entries: all.filter((post) => post.data.tags.includes(tag)) },
+  }));
+}
+
+interface Props {
+  entries: CollectionEntry<'blog'>[];
+}
+
+const { entries } = Astro.props;
+const { tag } = Astro.params;
+---
+<Layout title={`Tag: ${tag} · ${SITE_NAME}`} description={`Articles tagged ${tag}.`}>
+  <div class="wrap">
+    <section class="tag-page">
+      <a class="article-back" href={url('#articles')}>All articles</a>
+      <h1 class="page-title">Tag: {tag}</h1>
+      <div class="section-heading">
+        <h2 class="visually-hidden">Articles</h2>
+        <p class="count">{articleCount(entries.length)}</p>
+      </div>
+      <ul class="article-list">
+        {entries.map((post) => <ArticleRow post={post} />)}
+      </ul>
+    </section>
+  </div>
+</Layout>

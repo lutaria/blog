@@ -1,0 +1,50 @@
+---
+import '../styles/global.css';
+import { SITE_DESCRIPTION, SITE_NAME } from '../lib/site';
+import { base, url } from '../lib/url';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = SITE_DESCRIPTION } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site!);
+const path = Astro.url.pathname.replace(/\/+$/, '/');
+const isHome = path === base;
+const isSearch = path === url('search/');
+const rssHref = url('rss.xml');
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="application/rss+xml" title={SITE_NAME} href={rssHref} />
+    <link rel="sitemap" href={url('sitemap-index.xml')} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="wordmark" href={url()} aria-label="Source Notes home">{SITE_NAME}</a>
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href={url()} aria-current={isHome ? 'page' : undefined}>Home</a>
+          <a href={url('search/')} aria-current={isSearch ? 'page' : undefined}>Search</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <a class="wordmark" href={url()}>{SITE_NAME}</a>
+        <a href={rssHref} title="Subscribe with a feed reader">RSS</a>
+      </div>
+    </footer>
+  </body>
+</html>
