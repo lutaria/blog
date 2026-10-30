@@ -40,9 +40,9 @@ npm run build     # 生产构建，排除草稿；有公开文章时生成搜索
 npm run preview   # 预览生产构建产物
 ```
 
-写作时用 `npm run dev`。开发模式包含草稿，首页会列出草稿，文章地址带 base 前缀：`http://127.0.0.1:4321/tech-blog/posts/<文章 id>/`，例如 `src/blog/guides/preview.mdx` 对应 `http://127.0.0.1:4321/tech-blog/posts/guides/preview/`。开发模式不生成搜索索引，搜索页会提示索引在构建后可用。
+写作时用 `npm run dev`。开发模式包含草稿，首页会列出草稿，文章地址带 base 前缀：`http://127.0.0.1:4321/blog/posts/<文章 id>/`，例如 `src/blog/guides/preview.mdx` 对应 `http://127.0.0.1:4321/blog/posts/guides/preview/`。开发模式不生成搜索索引，搜索页会提示索引在构建后可用。
 
-确认文章可以公开后，再用 `npm run build` + `npm run preview` 验收生产内容。生产构建排除所有草稿，预览地址为 `http://127.0.0.1:4321/tech-blog/`；搜索依赖构建后的 Pagefind 索引，需要实际输入关键词、打开结果、刷新带 `q` 的链接。结束预览时关闭对应进程。
+确认文章可以公开后，再用 `npm run build` + `npm run preview` 验收生产内容。生产构建排除所有草稿，预览地址为 `http://127.0.0.1:4321/blog/`；搜索依赖构建后的 Pagefind 索引，需要实际输入关键词、打开结果、刷新带 `q` 的链接。结束预览时关闭对应进程。
 
 ## 4. 发表
 

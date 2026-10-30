@@ -43,7 +43,7 @@ import cover from '../assets/cover.svg';
 
 <CodeBlock code={source} filename="shared/post-path.js" lang="js" />
 
-把 slug 限制为小写字母、数字和连字符，是为了让示例保持可预测；函数也会拒绝不符合规则的值。文章路径本身来自 `postPath('one-source', '/tech-blog/')`，结果是 `/tech-blog/posts/one-source/`。这段代码不替换站点现有的 URL helper，也不承担路由职责，它只是演示共享源文件的最小形态。
+把 slug 限制为小写字母、数字和连字符，是为了让示例保持可预测；函数也会拒绝不符合规则的值。文章路径本身来自 `postPath('one-source', '/blog/')`，结果是 `/blog/posts/one-source/`。这段代码不替换站点现有的 URL helper，也不承担路由职责，它只是演示共享源文件的最小形态。
 
 ## 流程图也只有一个源头
 
@@ -62,7 +62,7 @@ import cover from '../assets/cover.svg';
 
 <PathPreview />
 
-项目站点的地址带有 `/tech-blog/` 前缀，自定义域名的根路径则没有。两者共用同一段路径逻辑，差别只在传入的 base。把这层关系放进文章，比单独写一段“部署时请注意”的说明更容易被读者亲手验证。
+项目站点的地址带有 `/blog/` 前缀，自定义域名的根路径则没有。两者共用同一段路径逻辑，差别只在传入的 base。把这层关系放进文章，比单独写一段“部署时请注意”的说明更容易被读者亲手验证。
 
 ## 检查与构建
 

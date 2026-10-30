@@ -5,7 +5,7 @@ import codeTheme from './src/lib/code-theme.mjs';
 
 export default defineConfig({
   site: 'https://lutaria.github.io',
-  base: '/tech-blog',
+  base: '/blog',
   trailingSlash: 'always',
   output: 'static',
   integrations: [mdx(), sitemap()],

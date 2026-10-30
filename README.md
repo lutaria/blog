@@ -2,7 +2,7 @@
 
 Notes on code, systems, and the ideas behind them.
 
-Source Notes 是一个静态 Astro 技术博客。文章由人类作者撰写，AI 只按授权协助画图、代码示例、校对或润色，不代写可发布正文。站点界面为英文，中文文章的标题、摘要与正文标注 `lang="zh-CN"`。
+Source Notes 是一个静态 Astro 个人博客。文章由人类作者撰写，AI 只按授权协助画图、代码示例、校对或润色，不代写可发布正文。站点界面为英文，中文文章的标题、摘要与正文标注 `lang="zh-CN"`。
 
 ## 项目结构
 
@@ -28,8 +28,8 @@ npm run preview   # 预览构建产物，与线上内容一致
 
 两种预览方式用途不同：
 
-- `npm run dev`：开发模式包含草稿。首页会列出草稿，文章地址为 `http://127.0.0.1:4321/tech-blog/posts/<文章 id>/`，子目录文章也按目录层级访问。搜索索引只在构建时生成，所以开发模式的搜索页显示构建后可用，不提供查询。
-- `npm run build` + `npm run preview`：生产构建排除所有草稿。预览地址为 `http://127.0.0.1:4321/tech-blog/`，文章、首页、标签、RSS、sitemap 与搜索索引都只包含 `draft: false` 的文章。全部文章为草稿时构建会跳过 Pagefind，搜索页显示空态而不是故障。
+- `npm run dev`：开发模式包含草稿。首页会列出草稿，文章地址为 `http://127.0.0.1:4321/blog/posts/<文章 id>/`，子目录文章也按目录层级访问。搜索索引只在构建时生成，所以开发模式的搜索页显示构建后可用，不提供查询。
+- `npm run build` + `npm run preview`：生产构建排除所有草稿。预览地址为 `http://127.0.0.1:4321/blog/`，文章、首页、标签、RSS、sitemap 与搜索索引都只包含 `draft: false` 的文章。全部文章为草稿时构建会跳过 Pagefind，搜索页显示空态而不是故障。
 
 ## 开始写文章
 
@@ -51,4 +51,4 @@ draft: true   # 可省略；省略等同于草稿
 
 ## 发布状态
 
-站点已发布到 GitHub Pages：<https://lutaria.github.io/tech-blog/>。`astro.config.mjs` 的 `site` 为 `https://lutaria.github.io`，项目路径由 `base: '/tech-blog'` 提供。远程仓库为 [lutaria/tech-blog](https://github.com/lutaria/tech-blog)，Pages 的构建来源是 GitHub Actions：推送到 `main` 后由 `.github/workflows/pages.yml` 校验、构建并部署，PR 只做校验。当前所有文章仍是草稿，因此线上首页显示零篇文章、搜索页为正常空态，这是预期结果。
+站点已发布到 GitHub Pages：<https://lutaria.github.io/blog/>。`astro.config.mjs` 的 `site` 为 `https://lutaria.github.io`，项目路径由 `base: '/blog'` 提供。远程仓库为 [lutaria/blog](https://github.com/lutaria/blog)，Pages 的构建来源是 GitHub Actions：推送到 `main` 后由 `.github/workflows/pages.yml` 校验、构建并部署，PR 只做校验。当前所有文章仍是草稿，因此线上首页显示零篇文章、搜索页为正常空态，这是预期结果。
